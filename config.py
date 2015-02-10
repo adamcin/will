@@ -64,7 +64,7 @@ PLUGINS = [
 PLUGIN_BLACKLIST = [
     # "will.plugins.friendly.cookies",      # But who would deprive will of cookies??
     "will.plugins.productivity.hangout",    # Because it requires a HANGOUT_URL
-    "will.plugins.productivity.world_time", # Because it requires a WORLD_WEATHER_ONLINE key
+    "will.plugins.productivity.world_time", # Because it requires a WORLD_WEATHER_ONLINE_V2_KEY key
 ]
 
 
@@ -95,7 +95,8 @@ PLUGIN_BLACKLIST = [
 
 
 # Fully-qualified folders to look for templates in, beyond the two that 
-# are always included: core will's templates folder, and your project's templates folder.
+# are always included: core will's templates folder, your project's templates folder, and
+# all templates folders in included plugins, if they exist.
 # 
 # TEMPLATE_DIRS = [
 #   os.path.abspath("other_folder/templates")
@@ -108,6 +109,8 @@ PLUGIN_BLACKLIST = [
 #     "levi",
 # ]
 
+# Disable SSL checks.  Strongly reccomended this is not set to True.
+# ALLOW_INSECURE_HIPCHAT_SERVER = False
 
 # Mailgun config, if you'd like will to send emails.
 # DEFAULT_FROM_EMAIL="will@example.com"

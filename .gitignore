@@ -1,3 +1,4 @@
+.DS_Store
 *.py[cod]
 
 # C extensions
@@ -36,3 +37,4 @@ README.html
 shelf.db
 .idea/*
 site
+docs/.DS_Store

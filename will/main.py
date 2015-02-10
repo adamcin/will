@@ -15,9 +15,6 @@ from clint.textui import puts, indent, columns
 from os.path import abspath, dirname
 from multiprocessing import Process, Queue
 
-from gevent import monkey
-# Monkeypatch has to come before bottle
-monkey.patch_all()
 import bottle
 
 from listener import WillXMPPClientMixin
@@ -45,8 +42,8 @@ sys.path.append(PROJECT_ROOT)
 sys.path.append(os.path.join(PROJECT_ROOT, "will"))
 
 
-class WillBot(EmailMixin, WillXMPPClientMixin, StorageMixin, ScheduleMixin,\
-    ErrorMixin, RoomMixin, HipChatMixin, PluginModulesLibraryMixin):
+class WillBot(EmailMixin, WillXMPPClientMixin, StorageMixin, ScheduleMixin,
+              ErrorMixin, RoomMixin, HipChatMixin, PluginModulesLibraryMixin):
 
     def __init__(self, **kwargs):
         if "template_dirs" in kwargs:
@@ -55,39 +52,46 @@ class WillBot(EmailMixin, WillXMPPClientMixin, StorageMixin, ScheduleMixin,\
             warn("plugin_dirs is now depreciated")
 
         log_level = getattr(settings, 'LOGLEVEL', logging.ERROR)
-        logging.basicConfig(level=log_level,\
-            format='%(levelname)-8s %(message)s')
+        logging.basicConfig(
+            level=log_level,
+            format='%(levelname)-8s %(message)s'
+        )
 
-        
         # Find all the PLUGINS modules
         plugins = settings.PLUGINS
         self.plugins_dirs = {}
+
+        # Set template dirs.
+        full_path_template_dirs = []
+        for t in settings.TEMPLATE_DIRS:
+            full_path_template_dirs.append(os.path.abspath(t))
+
+        # Add will's templates_root
+        if TEMPLATES_ROOT not in full_path_template_dirs:
+            full_path_template_dirs += [TEMPLATES_ROOT, ]
+
+        # Add this project's templates_root
+        if PROJECT_TEMPLATE_ROOT not in full_path_template_dirs:
+            full_path_template_dirs += [PROJECT_TEMPLATE_ROOT, ]
 
         # Convert those to dirs
         for plugin in plugins:
             path_name = None
             for mod in plugin.split('.'):
                 if path_name is not None:
-                    path_name=[path_name]
+                    path_name = [path_name]
                 file_name, path_name, description = imp.find_module(mod, path_name)
 
             # Add, uniquely.
             self.plugins_dirs[os.path.abspath(path_name)] = plugin
 
+            if os.path.exists(os.path.join(os.path.abspath(path_name), "templates")):
+                full_path_template_dirs.append(
+                    os.path.join(os.path.abspath(path_name), "templates")
+                )
+
         # Key by module name
-        self.plugins_dirs = dict(zip(self.plugins_dirs.values(),self.plugins_dirs.keys()))
-
-        full_path_template_dirs = []
-        for t in settings.TEMPLATE_DIRS:
-            full_path_template_dirs.append(os.path.abspath(t))
-        
-        # Add will's templates_root
-        if not TEMPLATES_ROOT in full_path_template_dirs:
-            full_path_template_dirs += [TEMPLATES_ROOT, ]
-
-        # Add this project's templates_root
-        if not PROJECT_TEMPLATE_ROOT in full_path_template_dirs:
-            full_path_template_dirs += [PROJECT_TEMPLATE_ROOT, ]
+        self.plugins_dirs = dict(zip(self.plugins_dirs.values(), self.plugins_dirs.keys()))
 
         # Storing here because storage hasn't been bootstrapped yet.
         os.environ["WILL_TEMPLATE_DIRS_PICKLED"] =\
@@ -248,7 +252,6 @@ To set your %(name)s:
             else:
                 show_valid("Joining the %s room%s specified." % (len(settings.ROOMS), "s" if len(settings.ROOMS)>1 else ""))
         puts("")
-            
 
     def verify_plugin_settings(self):
         puts("Verifying settings requested by plugins...")
@@ -282,7 +285,6 @@ To set your %(name)s:
         except:
             error("Unable to connect to %s" % settings.REDIS_URL)
             sys.exit(1)
-        
 
     def bootstrap_scheduler(self):
         bootstrapped = False
@@ -320,7 +322,7 @@ To set your %(name)s:
             self.startup_error("Error bootstrapping bottle", e)
         if bootstrapped:
             show_valid("Web server started.")
-            bottle.run(host='0.0.0.0', port=settings.HTTPSERVER_PORT, server='gevent', quiet=True)
+            bottle.run(host='0.0.0.0', port=settings.HTTPSERVER_PORT, server='cherrypy', quiet=True)
 
     def bootstrap_xmpp(self):
         bootstrapped = False
@@ -454,6 +456,7 @@ To set your %(name)s:
                         if plugin_info["blacklisted"]:
                             puts("✗ %s (blacklisted)" % plugin_name)
                         else:
+                            plugin_instances = {}
                             for function_name, fn in inspect.getmembers(plugin_info["class"], predicate=inspect.ismethod):
                                 try:
                                     # Check for required_settings
@@ -482,19 +485,26 @@ To set your %(name)s:
                                                         if pht in self.help_modules:
                                                             self.help_modules[pht].append(meta["__doc__"])
                                                         else:
-                                                            self.help_modules[pht] = [meta["__doc__"],]
+                                                            self.help_modules[pht] = [meta["__doc__"]]
                                                     else:
                                                         self.help_modules[OTHER_HELP_HEADING].append(meta["__doc__"])
                                                 if meta["multiline"]:
                                                     compiled_regex = re.compile(regex, re.MULTILINE | re.DOTALL)
                                                 else:
                                                     compiled_regex = re.compile(regex)
+
+                                                if plugin_info["class"] in plugin_instances:
+                                                    instance = plugin_instances[plugin_info["class"]]
+                                                else:
+                                                    instance = plugin_info["class"]()
+                                                    plugin_instances[plugin_info["class"]] = instance
+
                                                 self.message_listeners.append({
                                                     "function_name": function_name,
                                                     "class_name": plugin_info["name"],
                                                     "regex_pattern": meta["listener_regex"],
                                                     "regex": compiled_regex,
-                                                    "fn": getattr(plugin_info["class"](), function_name),
+                                                    "fn": getattr(instance, function_name),
                                                     "args": meta["listener_args"],
                                                     "include_me": meta["listener_includes_me"],
                                                     "direct_mentions_only": meta["listens_only_to_direct_mentions"],

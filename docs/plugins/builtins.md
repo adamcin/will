@@ -47,6 +47,12 @@ def homepage_listener(self):
     return {}
 ```
 
+A note on `TEMPLATE_DIRS` - Will automatically includes the following:
+
+- Core Will's `templates` directory,
+- Your Will's `templates` directory,
+- All `templates` directories in the root of modules specified in `settings.PLUGINS`.
+
 
 ## Help and documentation
 
@@ -116,6 +122,48 @@ When will starts up, he'll make sure they've been set:
 ![Verify settings](../../img/verify_settings.gif)
 
 
+
+## Getting a room's history
+
+Sometimes you'll want to retrieve a room's history. No problem - get the room's object, and the last 75 messages are sitting on `.history`.
+
+```python  
+class HistoryPlugin(WillPlugin):
+
+    @respond_to("^get last message")
+    def get_history(self, message):
+        room = self.get_room_from_message(message)
+        self.reply(message, room.history[-1]["message"])
+```
+
+`.history` is pretty much what's returned from the [HipChat room history API](https://www.hipchat.com/docs/apiv2/method/view_room_history) - the lone exception is that the date has been converted to a python datetime.
+
+```python
+    {
+        u'from':{
+            u'mention_name':u'First Last',
+            u'id':xxxx,
+            u'links':{
+                u'self': u'https://api.hipchat.com/v2/user/xxxx'
+            },
+            u'name':u'First Last'
+        },
+        u'date':datetime.datetime(2015, 1, 26, 15, 26, 52),
+        u'mentions':[
+            {
+                u'mention_name':u'FirstLast',
+                u'id':xyxy,
+                u'links':{
+                    u'self': u'https://api.hipchat.com/v2/user/xyxy'
+                },
+                u'name':u'First Last'
+            }
+        ],
+        u'message':u'Hi there!',
+        u'type':u'message',
+        u'id':u'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx'
+    }
+```
 
 ## Parse natural time
 

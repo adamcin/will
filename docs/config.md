@@ -25,12 +25,14 @@ Config.py is where all of your non-sensitive settings should go.   This includes
 - `PLUGIN_BLACKLIST`: The list of plugins to ignore, even if they're in `PLUGINS`,
 - `PUBLIC_URL`: The publicly accessible URL will can reach himself at (used for [keepalive](plugins/bundled.md#administration)),
 - `HTTPSERVER_PORT`: The port will should handle HTTP requests on.  Defaults to 80, set to > 1024 if you don't have sudo,
+- `REDIS_MAX_CONNECTIONS`: The maximum number of connections to make to redis, for connection pooling.
 - `ROOMS`: The list of rooms to join,
 - `DEFAULT_ROOM`: The room to send messages that come from web requests to,
 - `TEMPLATE_DIRS`: Extra directories to look for templates,
 - `ADMINS`: The mention names of all the admins,
 - `LOGLEVEL`: What logging level to use,
 - `HIPCHAT_SERVER`: if you're using the [HipChat server beta](https://www.hipchat.com/server), the hostname of the server,
+- `ALLOW_INSECURE_HIPCHAT_SERVER`: the option to disable SSL checks (seriously, don't),
 - and all of your non-sensitive plugin settings.
 
 More expansive documenation on all of those settings is in `config.py`, right where you need it.

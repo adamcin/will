@@ -108,12 +108,28 @@ def import_settings(quiet=True):
             if not quiet:
                 warn("no V1_TOKEN found in the environment or config. This is generally ok, but if you have more than 30 rooms, you may recieve rate-limit errors without one.")
 
+        if not "REDIS_MAX_CONNECTIONS" in settings:
+            settings["REDIS_MAX_CONNECTIONS"] = 4
+            if not quiet:
+                note("REDIS_MAX_CONNECTIONS not set. Defaulting to 4.")
+
         if not "TEMPLATE_DIRS" in settings:
             if "WILL_TEMPLATE_DIRS_PICKLED" in os.environ:
                 # All good
                 pass
             else:
                 settings["TEMPLATE_DIRS"] = []
+        if "ALLOW_INSECURE_HIPCHAT_SERVER" in settings and\
+                (settings["ALLOW_INSECURE_HIPCHAT_SERVER"] == True or settings["ALLOW_INSECURE_HIPCHAT_SERVER"].lower() == "true"):
+            warn("You are choosing to run will with SSL disabled. This is INSECURE and should NEVER be deployed outside a development environment.")
+            settings["ALLOW_INSECURE_HIPCHAT_SERVER"] = True
+            settings["REQUESTS_OPTIONS"] = {
+                "verify": False,
+            }
+        else:
+            settings["ALLOW_INSECURE_HIPCHAT_SERVER"] = False
+            settings["REQUESTS_OPTIONS"] = {}
+
 
         if not "ADMINS" in settings:
             settings["ADMINS"] = "*"

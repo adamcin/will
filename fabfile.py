@@ -1,5 +1,6 @@
 import os
 import tempfile
+from will import VERSION
 from fabric.api import *
 
 SITE_DIR = "site"
@@ -12,6 +13,19 @@ SANITY_CHECK_BUILD_FILES = ["index.html", "js", "css"]
 def _splitpath(path):
     path = os.path.normpath(path)
     return path.split(os.sep)
+
+def tag_release():
+    # Tag the release:
+    local("git tag %s" % VERSION)
+    local("git push --tags")
+
+def upload_release():
+    local("python setup.py sdist upload")
+
+def release():
+    deploy_docs()
+    upload_release()
+    tag_release()
 
 def deploy_docs():
     # Sanity check dir.

@@ -14,8 +14,8 @@ class WillXMPPClientMixin(ClientXMPP, RosterMixin, RoomMixin, HipChatMixin):
     def start_xmpp_client(self):
         logger = logging.getLogger(__name__)
         ClientXMPP.__init__(self, "%s/bot" % settings.USERNAME, settings.PASSWORD)
-        self.rooms = []
 
+        self.rooms = []
         self.default_room = settings.DEFAULT_ROOM
 
         # Property boostraps the list
@@ -39,6 +39,9 @@ class WillXMPPClientMixin(ClientXMPP, RosterMixin, RoomMixin, HipChatMixin):
 
         self.whitespace_keepalive = True
         self.whitespace_keepalive_interval = 30
+
+        if settings.ALLOW_INSECURE_HIPCHAT_SERVER == True:
+            self.add_event_handler('ssl_invalid_cert', lambda cert: True)
 
         self.add_event_handler("roster_update", self.join_rooms)
         self.add_event_handler("session_start", self.session_start)
@@ -124,7 +127,7 @@ class WillXMPPClientMixin(ClientXMPP, RosterMixin, RoomMixin, HipChatMixin):
 
                 sent_directly_to_me = False
                 # If it's sent directly to me, strip off "@will" from the start.
-                if body[:len(self.handle)+1] == "@%s" % self.handle:
+                if body[:len(self.handle) + 1].lower() == ("@%s" % self.handle).lower():
                     body = body[len(self.handle)+1:].strip()
                     msg["body"] = body
 
@@ -150,7 +153,8 @@ class WillXMPPClientMixin(ClientXMPP, RosterMixin, RoomMixin, HipChatMixin):
                                     content = "I ran into trouble running %s.%s:\n\n%s" % (listener["class_name"], listener["function_name"], traceback.format_exc(),)
 
                                     if msg is None or msg["type"] == "groupchat":
-                                        content = "@%s %s" % (msg.sender["nick"], content)
+                                        if msg.sender and "nick" in msg.sender:
+                                            content = "@%s %s" % (msg.sender["nick"], content)
                                         self.send_room_message(msg.room["room_id"], content, color="red")
                                     elif msg['type'] in ('chat', 'normal'):
                                         self.send_direct_message(msg.sender["hipchat_id"], content)

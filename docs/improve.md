@@ -41,8 +41,9 @@ To submit a plugin that's running in your will,
 
 1. Fork this repo.
 2. Clone down a copy, set up redis and the env, as before.
-3. Copy your plugin and docs over to the core will repo,
-4. Run `./start_dev_will.py` to start up just core will, and test it out!
+3. `pip install -r requirements.dev.txt`
+4. Copy your plugin and docs over to the core will repo,
+5. Run `./start_dev_will.py` to start up just core will, and test it out!
 
 
 ## Code standards and PRs
@@ -54,6 +55,16 @@ This one's hopefully straightforward:
 - Please add your name and attribution to the AUTHORS file.
 - Know you have our thanks for helping to make will even better!
 
+
+## Tests
+
+Shamefully, tests are just getting rolling, and a proper, well-architected test harness is in the works. However, there are *some* tests you can run by running:
+
+```bash
+coverage run -m nose
+```
+
+More soon!
 
 
 ## The Shoulders of Giants
@@ -67,7 +78,7 @@ Will leverages some fantastic libraries.  He wouldn't exist without them.
 - [apscheduler](http://apscheduler.readthedocs.org/en/latest/) for scheduled task parsing,
 - [Requests](http://requests.readthedocs.org/en/latest/) to make http sane.
 
-Will was originally written and is maintained by [Steven Skoczen](https://github.com/skoczen) at [GreenKahuna](https://www.greenkahuna.com).  The rest of the GK team has also pitched in, including [ckcollab](http://github.com/ckcollab), and [levithomason](http://github.com/levithomason).
+Will was originally written and is maintained by [Steven Skoczen](http://stevenskoczen.com).  Credit to GreenKahuna (now defunct) and [BuddyUp](http://www.buddyup.org) for supporting those efforts with on-the-job time.
 
 Will's also has had help from lots of coders. Alphabetically:
 
@@ -75,25 +86,110 @@ Will's also has had help from lots of coders. Alphabetically:
 - [adamgilman](https://github.com/adamgilman) gave you the friendly error messages when the hipchat key was invalid.
 - [amckinley](https://github.com/amckinley) fixed a bug in the hipchat user list from missing params.
 - [bfhenderson](https://github.com/bfhenderson) removed dependence on the v1 token, and made help more friendly.
+- [bsvetchine](https://github.com/bsvetchine) fixed a bug with README generation.
+- [carsongee](https://github.com/carsongee) pooled your redis connections.
+- [ckcollab](http://github.com/ckcollab) was one of the original contributors, when will was first built at GreenKahuna.
 - [crccheck](https://github.com/crccheck) gave you friendly error messages if your `WILL_ROOMS` was wrong.
 - [dpoirier](https://github.com/dpoirier) figured out how to properly ignore the initial catch-up messages, and gave you log-level control.
 - [jbeluch](http://github.com/jbeluch) found a bug with `get_roster` not populating in time.
+- [jessamynsmith](jessamynsmith) was kind enough to port [talkbackbot](https://github.com/jessamynsmith) over, at my request.
+- [levithomason](http://github.com/levithomason) was one of the original contributors, when will was first built at GreenKahuna.
+- [hobson](http://github.com/hobson) made setup.py more robust across operating systems, and improved the docs.
+- [neronmoon](https://github.com/neronmoon) made it easier to mention will with non-standard case
 - [michaeljoseph](https://github.com/michaeljoseph) suggested improvements to setup and requirements.txt format.
 - [mrgrue](https://github.com/mrgrue) added support for the hipchat server beta.
 - [netjunkie](https://github.com/netjunki) fixed a duplicated help module.
+- [pcurry](https://github.com/pcurry) added travis support.
+- [PrideRage](https://github.com/PrideRage) gave you access to a room's entire history, and suggested a better talkback regex.
 - [quixeybrian](https://github.com/quixeybrian) wrote the awesome new help system and stopped the rate limit nightmare.
 - [rbp](https://github.com/rbp) added the `admin_only` argument, and fixed a bug with `room` not being passed along properly to messages.
+- [sivy](https://github.com/sivy) added a config flag for disabling SSL, and the ability to look up a user by nickname.
 - [tomokas](https://github.com/tomokas) fixed a bug in the `@randomly` decorator.
+- [wohali](https://github.com/wohali) tracked down the annoying DNS thread issue, and got will on the right path.
+- [woohgit](https://github.com/woohgit) added support for the v2 WorldWeatherOnline API.
 
 ## Other Wills
 
 If you're looking for plugin inspiration, here are some wills that are open-sourced:
 
+- [BuddyUp's will](https://github.com/buddyup/our-will)
 - [GreenKahuna's will](https://github.com/greenkahuna/our-will)
 
 **Note:** Have a will you've open-sourced? Please send it in a PR or Issue!  This list is tiny!
 
 ## Releases
+
+#### 0.7.1 - February 5, 2015
+
+* Improved talkbackbot regex, suggested by [PrideRage](https://github.com/PrideRage).
+
+
+#### 0.7.0 - February 4, 2015
+
+* Adds a port of the awesome [talkbackbot](https://github.com/jessamynsmith), thanks to [jessamynsmith](jessamynsmith), who super-kindly ported it at my request!
+* Oh, yeah. That port also includes the first proper tests in will, and a pretty solid pattern for testing plugins.  Woo!  More huge thanks to [jessamynsmith](https://github.com/jessamynsmith).
+
+
+#### 0.6.9 - January 30, 2015
+
+* Fixed copypasta error caught by the keen eye of [dpoirier](https://github.com/dpoirier).
+
+#### 0.6.8 - January 30, 2015
+
+* Will now supports templates directories within plugins.  Just put a `templates` directory in the plugin's module, and it will be detected.  Thanks to [sivy](https://github.com/sivy) for the idea and willingness to get it done!
+
+
+#### 0.6.7 - January 29, 2015
+
+* Addition of `.get_user_by_nick()` method, to look up users by nick, thanks to [sivy](https://github.com/sivy).
+* Bugfix to `ALLOW_INSECURE_HIPCHAT_SERVER` when specified in `config.py`, thanks to [sivy](https://github.com/sivy).
+
+#### 0.6.6 - January 29, 2015
+
+* New `room.history` attribute with a room's history, thanks to [PrideRage](https://github.com/PrideRage)
+* New setting: `ALLOW_INSECURE_HIPCHAT_SERVER`, which will disable SSL checks (you're on your own), thanks to [sivy](https://github.com/sivy).
+* Adds support for V2 of the WorldWeatherOnline API (used for world times, weather) thanks to [woohgit](https://github.com/woohgit).
+* Adds new release and doc deploy scripts, so the github [releases](https://github.com/skoczen/will/releases) are kept up to date.  Thanks to [crccheck](https://github.com/crccheck) for noticing and reporting they were stale!
+
+
+#### 0.6.5 - January 23, 2015
+
+* Removes mkdocs from the production requirements.txt to fix a Jinja version problem.  Thanks to the report from [PrideRage](https://github.com/PrideRage).
+
+#### 0.6.4 - January 19, 2015
+
+* Switches to bottle to cherrypy over gevent, which should solve lingering gevent DNS threading issues, thanks to [wohali](https://github.com/wohali).
+* Support for @will, @WILL, @wIll, thanks to [neronmoon](https://github.com/neronmoon)
+
+
+#### 0.6.3 - December 30, 2014
+
+* Better error handling for weirdly formatted messages. 
+* Better generated README, thanks to [bsvetchine](https://github.com/bsvetchine).
+
+
+#### 0.6.2 - September 23, 2014
+
+* Bugfix on `generate_will_project`, thanks to the report by [MattyDub](https://github.com/MattyDub).
+
+
+#### 0.6.1 - September 23, 2014
+
+* Freezes apscheduler to < 3.0, since its API was backwards incompatibile.
+
+
+#### 0.6.0 - September 17, 2014
+
+* Methods in a single class now share a common instance, thanks to [amckinley](https://github.com/amckinley).
+* Redis connections are now pooled (which should help with "max clients exceeded" errors), thanks to [carsongee](https://github.com/carsongee).
+* Preliminary travis ci support, thanks to [pcurry](https://github.com/pcurry).
+* More gramatically correct documentation by [hobson](https://github.com/hobson).
+
+
+#### 0.5.7 - September 3, 2014
+
+* Improvements to setup.py to be robust a variety of linux/unixes by [hobson](https://github.com/hobson).
+
 
 #### 0.5.6 - August 26, 2014
 
